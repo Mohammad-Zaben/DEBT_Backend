@@ -1,0 +1,17 @@
+fastapi==0.111.0          # Core framework
+uvicorn[standard]==0.30.0 # ASGI server for running FastAPI
+
+# Database & ORM
+sqlalchemy==2.0.31        # ORM for PostgreSQL
+psycopg2-binary==2.9.9    # PostgreSQL driver
+
+# Migrations
+alembic==1.13.2           # Database migrations
+
+# Security & Auth
+python-jose[cryptography]==3.3.0  # JWT creation & verification
+passlib[bcrypt]==1.7.4            # Password hashing
+
+# Validation & Settings
+pydantic==2.8.2           # Data validation & DTOs
+python-dotenv==1.0.1      # Load environment variables from .env
