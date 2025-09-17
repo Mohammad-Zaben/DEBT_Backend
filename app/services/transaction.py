@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.models.transaction import Transaction, TransactionType, TransactionStatus
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, ProviderType
 from app.models.user_provider import UserProvider
 
 
@@ -15,6 +15,14 @@ def create_transaction(db: Session, provider: User, user_id: int, amount: Decima
     # Provider must be provider role
     if provider.role != UserRole.PROVIDER:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only providers can create transactions")
+    
+    # Provider type validation: PAYER providers can only create PAYMENT transactions
+    if provider.provider_type == ProviderType.PAYER and t_type == TransactionType.DEBT:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Payer providers can only record payments, not debts. Only lender providers can add debts."
+        )
+    
     # Link must exist
     if not _check_link_exists(db, user_id, provider.id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Link does not exist")

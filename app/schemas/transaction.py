@@ -11,8 +11,10 @@ class TransactionBase(BaseModel):
     amount: Decimal
     pass
 
-class TransactionCreate(TransactionBase):
-    ...
+class TransactionCreate(BaseModel):
+    user_id: int
+    type: TransactionType
+    amount: Decimal
 
 class DebtApprove(BaseModel):
     transaction_id: int

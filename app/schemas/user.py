@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr
-from app.models.user import UserRole
+from app.models.user import UserRole, ProviderType
 
 class UserBase(BaseModel):
     name: str
@@ -9,15 +9,18 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    provider_type: Optional[ProviderType] = None  # Set when registering as provider
 
 class ProviderCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
+    provider_type: ProviderType  # Required for provider registration
 
 class UserRead(UserBase):
     id: int
     role: UserRole
+    provider_type: Optional[ProviderType] = None
     created_at: datetime
 
     class Config:
@@ -30,3 +33,7 @@ class UserLogin(BaseModel):
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     password: Optional[str] = None
+    provider_type: Optional[ProviderType] = None  # Allow updating provider type
+
+class ProviderTypeUpdate(BaseModel):
+    provider_type: ProviderType

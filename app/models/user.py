@@ -9,6 +9,10 @@ class UserRole(str, enum.Enum):
     PROVIDER = "Provider"
     ADMIN = "Admin"
 
+class ProviderType(str, enum.Enum):
+    LENDER = "lender"    # Can add debts and payments (shopkeeper/market owner)
+    PAYER = "payer"      # Can only add payments (contractor)
+
 class User(Base):
     __tablename__ = "users"
 
@@ -17,6 +21,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.USER)
+    provider_type = Column(Enum(ProviderType), nullable=True)  # Only for providers
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships

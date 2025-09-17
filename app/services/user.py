@@ -1,14 +1,36 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, ProviderType
 from app.core.security import get_password_hash
+from typing import Optional
 
 
-def create_user(db: Session, name: str, email: str, password: str, role: UserRole = UserRole.USER) -> User:
+def create_user(
+    db: Session, 
+    name: str, 
+    email: str, 
+    password: str, 
+    role: UserRole = UserRole.USER,
+    provider_type: Optional[ProviderType] = None
+) -> User:
     existing = db.query(User).filter(User.email == email).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    user = User(name=name, email=email, password=get_password_hash(password), role=role)
+    
+    # Validate provider_type is only set for providers
+    if provider_type is not None and role != UserRole.PROVIDER:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Provider type can only be set for provider role"
+        )
+    
+    user = User(
+        name=name, 
+        email=email, 
+        password=get_password_hash(password), 
+        role=role,
+        provider_type=provider_type
+    )
     db.add(user)
     db.commit()
     db.refresh(user)

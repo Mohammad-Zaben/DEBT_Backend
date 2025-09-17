@@ -13,17 +13,28 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserRead, include_in_schema=True)
 def register(payload: UserCreate, db: Session = Depends(get_db)):
+    """
+    Register a new user
+    - Users can optionally set provider_type if they want to be a provider
+    - provider_type is ignored if role is USER
+    """
     new_user = user_service.create_user(
         db,
         name=payload.name,
         email=payload.email,
         password=payload.password,
         role=UserRole.USER,
+        provider_type=payload.provider_type if payload.provider_type else None
     )
     return UserRead.model_validate(new_user)
 
 @router.post("/provider", response_model=UserRead)
 def create_provider(payload: ProviderCreate, current: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Create a new provider (Admin only)
+    - Admin can create providers with specific provider type
+    - provider_type is required for provider creation
+    """
     if current.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -35,6 +46,7 @@ def create_provider(payload: ProviderCreate, current: User = Depends(get_current
         email=payload.email,
         password=payload.password,
         role=UserRole.PROVIDER,
+        provider_type=payload.provider_type
     )
     return UserRead.model_validate(provider)
 
