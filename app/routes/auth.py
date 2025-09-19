@@ -15,8 +15,8 @@ router = APIRouter()
 def register(payload: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user
-    - Users can optionally set provider_type if they want to be a provider
-    - provider_type is ignored if role is USER
+    - Creates a regular USER account only
+    - To become a provider, use the separate /provider endpoint (admin only)
     """
     new_user = user_service.create_user(
         db,
@@ -24,7 +24,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
         email=payload.email,
         password=payload.password,
         role=UserRole.USER,
-        provider_type=payload.provider_type if payload.provider_type else None
+        provider_type=None  # Users are always created without provider type
     )
     return UserRead.model_validate(new_user)
 

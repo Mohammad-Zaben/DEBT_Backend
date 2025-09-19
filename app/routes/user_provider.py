@@ -35,9 +35,28 @@ def link(payload: UserProviderLinkCreate, current: User = Depends(get_current_us
     # Only provider can link specifying client id
     if current.role != UserRole.PROVIDER:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only providers can link clients")
+    
+    # Provider cannot link with themselves
+    if current.id == payload.user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Provider cannot link with themselves")
+    
     client = get_user(db, payload.user_id)
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+    
+    # Provider can only link with users (clients), not with other providers
+    if client.role == UserRole.PROVIDER:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Provider cannot link with another provider")
+    
+    # Check if the link already exists
+    existing_link = db.query(UserProvider).filter(
+        UserProvider.provider_id == current.id,
+        UserProvider.user_id == payload.user_id
+    ).first()
+    
+    if existing_link:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Provider is already linked with this user")
+    
     link_obj = link_user_provider(db, current, client)
     return UserProviderLinkRead.model_validate(link_obj)
 

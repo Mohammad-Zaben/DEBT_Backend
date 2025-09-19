@@ -21,12 +21,16 @@ def create(payload: TransactionCreate, current: User = Depends(get_current_user)
     - PAYER providers: Can only create PAYMENT transactions (contractor paying workers)
     
     Transaction Types:
-    - DEBT: Records money owed by user to provider (requires user approval)
+    - DEBT: Records money owed by user to provider (requires OTP validation for approval)
     - PAYMENT: Records money paid to user by provider (automatically confirmed)
+    
+    OTP Requirements:
+    - DEBT transactions: Must include valid OTP in request (server OTP = '1')
+    - PAYMENT transactions: No OTP required (auto-confirmed)
     """
     if current.role != UserRole.PROVIDER:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only providers can create transactions")
-    tx = create_transaction(db, current, payload.user_id, payload.amount, payload.type)
+    tx = create_transaction(db, current, payload.user_id, payload.amount, payload.type, payload.otp)
     return TransactionRead.model_validate(tx)
 
 @router.post("/approve", response_model=TransactionRead)

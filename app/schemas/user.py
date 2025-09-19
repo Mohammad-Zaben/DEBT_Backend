@@ -9,7 +9,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    provider_type: Optional[ProviderType] = None  # Set when registering as provider
+    # No provider_type here - users register as regular users only
 
 class ProviderCreate(BaseModel):
     name: str

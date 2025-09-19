@@ -15,6 +15,7 @@ class TransactionCreate(BaseModel):
     user_id: int
     type: TransactionType
     amount: Decimal
+    otp: Optional[str] = None  # Required for DEBT transactions
 
 class DebtApprove(BaseModel):
     transaction_id: int

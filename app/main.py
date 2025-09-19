@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routes import auth, user, provider, user_provider, transaction, otp
+from app.routes import auth, user, provider, user_provider, transaction, otp, employer, work_payment
 
 app = FastAPI(title="DebtMe API")
 
@@ -11,6 +11,8 @@ app.include_router(provider.router, prefix="/providers", tags=["providers"])
 app.include_router(user_provider.router, prefix="/links", tags=["links"])
 app.include_router(transaction.router, prefix="/transactions", tags=["transactions"])
 app.include_router(otp.router, prefix="/otp", tags=["otp"])
+app.include_router(employer.router, prefix="/employers", tags=["employers"])
+app.include_router(work_payment.router, prefix="/work-payments", tags=["work-payments"])
 
 @app.get("/health")
 async def health():

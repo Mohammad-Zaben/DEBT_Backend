@@ -11,7 +11,7 @@ def _check_link_exists(db: Session, user_id: int, provider_id: int):
     return db.query(UserProvider).filter(UserProvider.user_id == user_id, UserProvider.provider_id == provider_id).first()
 
 
-def create_transaction(db: Session, provider: User, user_id: int, amount: Decimal, t_type: TransactionType):
+def create_transaction(db: Session, provider: User, user_id: int, amount: Decimal, t_type: TransactionType, otp: str = None):
     # Provider must be provider role
     if provider.role != UserRole.PROVIDER:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only providers can create transactions")
@@ -27,7 +27,22 @@ def create_transaction(db: Session, provider: User, user_id: int, amount: Decima
     if not _check_link_exists(db, user_id, provider.id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Link does not exist")
 
-    status_value = TransactionStatus.PENDING if t_type == TransactionType.DEBT else TransactionStatus.CONFIRMED
+    # Determine transaction status based on type and OTP validation
+    if t_type == TransactionType.PAYMENT:
+        # PAYMENT transactions are automatically confirmed
+        status_value = TransactionStatus.CONFIRMED
+    else:  # TransactionType.DEBT
+        # DEBT transactions require OTP validation
+        if not otp:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP is required for debt transactions")
+        
+        # Static OTP validation (server OTP = '1')
+        SERVER_OTP = '1'
+        if otp == SERVER_OTP:
+            status_value = TransactionStatus.CONFIRMED
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP. Transaction failed.")
+
     tx = Transaction(user_id=user_id, provider_id=provider.id, type=t_type, amount=amount, status=status_value)
     db.add(tx)
     db.commit()

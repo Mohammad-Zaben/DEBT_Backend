@@ -30,3 +30,7 @@ class User(Base):
     user_transactions = relationship("Transaction", foreign_keys="Transaction.user_id", back_populates="user")
     provider_transactions = relationship("Transaction", foreign_keys="Transaction.provider_id", back_populates="provider")
     otp = relationship("OTP", uselist=False, back_populates="user")
+    
+    # Work payment relationships (for PAYER providers)
+    employers = relationship("Employer", back_populates="provider", cascade="all, delete-orphan")
+    work_payments = relationship("WorkPayment", back_populates="provider", cascade="all, delete-orphan")
