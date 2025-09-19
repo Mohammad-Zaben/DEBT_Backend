@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, desc
 from typing import List, Optional
 from app.models.user import User, UserRole, ProviderType
@@ -61,6 +61,12 @@ def create_work_payment(
     db.add(work_payment)
     db.commit()
     db.refresh(work_payment)
+    
+    # Load the employer relationship
+    work_payment = db.query(WorkPayment).options(joinedload(WorkPayment.employer)).filter(
+        WorkPayment.id == work_payment.id
+    ).first()
+    
     return work_payment
 
 
@@ -78,7 +84,7 @@ def get_provider_work_payments(db: Session, provider: User) -> List[WorkPayment]
             detail="Only PAYER providers can access work payments"
         )
     
-    return db.query(WorkPayment).filter(
+    return db.query(WorkPayment).options(joinedload(WorkPayment.employer)).filter(
         WorkPayment.provider_id == provider.id
     ).order_by(desc(WorkPayment.payment_date)).all()
 
@@ -97,7 +103,7 @@ def get_employer_work_payments(db: Session, provider: User, employer_id: int) ->
             detail="Employer not found"
         )
     
-    return db.query(WorkPayment).filter(
+    return db.query(WorkPayment).options(joinedload(WorkPayment.employer)).filter(
         WorkPayment.employer_id == employer_id,
         WorkPayment.provider_id == provider.id
     ).order_by(desc(WorkPayment.payment_date)).all()
@@ -105,7 +111,7 @@ def get_employer_work_payments(db: Session, provider: User, employer_id: int) ->
 
 def get_work_payment(db: Session, provider: User, payment_id: int) -> WorkPayment:
     """Get a specific work payment"""
-    payment = db.query(WorkPayment).filter(
+    payment = db.query(WorkPayment).options(joinedload(WorkPayment.employer)).filter(
         WorkPayment.id == payment_id,
         WorkPayment.provider_id == provider.id
     ).first()
@@ -146,6 +152,12 @@ def update_work_payment(
     
     db.commit()
     db.refresh(payment)
+    
+    # Reload with employer relationship
+    payment = db.query(WorkPayment).options(joinedload(WorkPayment.employer)).filter(
+        WorkPayment.id == payment.id
+    ).first()
+    
     return payment
 
 

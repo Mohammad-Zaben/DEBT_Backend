@@ -38,11 +38,20 @@ def add_work_payment(payload: WorkPaymentCreate, current: User = Depends(get_cur
         payload.payment_date
     )
     
-    # Create response with employer name
-    result = WorkPaymentRead.model_validate(work_payment)
-    result.employer_name = work_payment.employer.name
+    # Ensure employer relationship is loaded
+    db.refresh(work_payment)
     
-    return result
+    # Create response with all required fields
+    return WorkPaymentRead(
+        id=work_payment.id,
+        employer_id=work_payment.employer_id,
+        provider_id=work_payment.provider_id,
+        amount=work_payment.amount,
+        description=work_payment.description,
+        payment_date=work_payment.payment_date,
+        employer_name=work_payment.employer.name,
+        created_at=work_payment.created_at
+    )
 
 
 @router.get("/", response_model=List[WorkPaymentRead])
@@ -54,11 +63,19 @@ def get_my_work_payments(current: User = Depends(get_current_user), db: Session 
     """
     work_payments = get_provider_work_payments(db, current)
     
-    # Add employer names
+    # Create response with employer names
     result = []
     for payment in work_payments:
-        payment_data = WorkPaymentRead.model_validate(payment)
-        payment_data.employer_name = payment.employer.name
+        payment_data = WorkPaymentRead(
+            id=payment.id,
+            employer_id=payment.employer_id,
+            provider_id=payment.provider_id,
+            amount=payment.amount,
+            description=payment.description,
+            payment_date=payment.payment_date,
+            employer_name=payment.employer.name,
+            created_at=payment.created_at
+        )
         result.append(payment_data)
     
     return result
@@ -76,11 +93,19 @@ def get_payments_from_employer(
     """
     work_payments = get_employer_work_payments(db, current, employer_id)
     
-    # Add employer names
+    # Create response with employer names
     result = []
     for payment in work_payments:
-        payment_data = WorkPaymentRead.model_validate(payment)
-        payment_data.employer_name = payment.employer.name
+        payment_data = WorkPaymentRead(
+            id=payment.id,
+            employer_id=payment.employer_id,
+            provider_id=payment.provider_id,
+            amount=payment.amount,
+            description=payment.description,
+            payment_date=payment.payment_date,
+            employer_name=payment.employer.name,
+            created_at=payment.created_at
+        )
         result.append(payment_data)
     
     return result
@@ -109,10 +134,16 @@ def get_work_payment_details(
     """
     payment = get_work_payment(db, current, payment_id)
     
-    result = WorkPaymentRead.model_validate(payment)
-    result.employer_name = payment.employer.name
-    
-    return result
+    return WorkPaymentRead(
+        id=payment.id,
+        employer_id=payment.employer_id,
+        provider_id=payment.provider_id,
+        amount=payment.amount,
+        description=payment.description,
+        payment_date=payment.payment_date,
+        employer_name=payment.employer.name,
+        created_at=payment.created_at
+    )
 
 
 @router.put("/{payment_id}", response_model=WorkPaymentRead)
@@ -136,10 +167,16 @@ def update_work_payment_record(
         payload.payment_date
     )
     
-    result = WorkPaymentRead.model_validate(updated_payment)
-    result.employer_name = updated_payment.employer.name
-    
-    return result
+    return WorkPaymentRead(
+        id=updated_payment.id,
+        employer_id=updated_payment.employer_id,
+        provider_id=updated_payment.provider_id,
+        amount=updated_payment.amount,
+        description=updated_payment.description,
+        payment_date=updated_payment.payment_date,
+        employer_name=updated_payment.employer.name,
+        created_at=updated_payment.created_at
+    )
 
 
 @router.delete("/{payment_id}")
