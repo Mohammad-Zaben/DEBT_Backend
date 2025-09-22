@@ -37,3 +37,12 @@ class UserUpdate(BaseModel):
 
 class ProviderTypeUpdate(BaseModel):
     provider_type: ProviderType
+
+class UserPublicInfo(BaseModel):
+    """Schema for public user information (name and email only)"""
+    id: int
+    name: str
+    email: EmailStr
+
+    class Config:
+        from_attributes = True

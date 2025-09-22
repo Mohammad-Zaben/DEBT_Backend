@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.utils.dependencies import get_current_user
-from app.schemas.user import UserRead, ProviderTypeUpdate
+from app.schemas.user import UserRead, ProviderTypeUpdate, UserPublicInfo
 from app.models.user import User, UserRole
 from app.services.user_provider import get_client_providers
+from app.services.user import get_user_public_info
 
 router = APIRouter()
 
@@ -48,3 +49,16 @@ def update_provider_type(
     db.refresh(current)
     
     return UserRead.model_validate(current)
+
+
+@router.get("/{user_id}/public", response_model=UserPublicInfo)
+def get_user_public_info_endpoint(user_id: int, db: Session = Depends(get_db)):
+    """
+    Get public user information (id, name, email) by user ID
+    WHO CAN USE: Anyone (no authentication required)
+    
+    This endpoint allows you to get basic public information about a user
+    before sending them an application or request.
+    """
+    user = get_user_public_info(db, user_id)
+    return UserPublicInfo.model_validate(user)

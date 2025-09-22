@@ -43,3 +43,17 @@ def get_user_by_email(db: Session, email: str):
 
 def get_user(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
+
+
+def get_user_public_info(db: Session, user_id: int) -> User:
+    """
+    Get public user information (id, name, email) by user ID
+    Raises HTTPException if user not found
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    return user
