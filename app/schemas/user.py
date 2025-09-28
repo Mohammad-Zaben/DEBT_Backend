@@ -21,6 +21,7 @@ class UserRead(UserBase):
     id: int
     role: UserRole
     provider_type: Optional[ProviderType] = None
+    secret_key: Optional[str] = None  # Include secret key in user response
     created_at: datetime
 
     class Config:

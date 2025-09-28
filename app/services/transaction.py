@@ -5,6 +5,7 @@ from sqlalchemy import func
 from app.models.transaction import Transaction, TransactionType, TransactionStatus
 from app.models.user import User, UserRole, ProviderType
 from app.models.user_provider import UserProvider
+from app.utils.verification_code_gener import generate_verification_code
 
 
 def _check_link_exists(db: Session, user_id: int, provider_id: int):
@@ -35,9 +36,11 @@ def create_transaction(db: Session, provider: User, user_id: int, amount: Decima
         # DEBT transactions require OTP validation
         if not otp:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP is required for debt transactions")
-        
-        # Static OTP validation (server OTP = '1')
-        SERVER_OTP = '1'
+
+        # Get the code of user based on user id
+        user = db.query(User).filter(User.id == user_id).first()
+        SERVER_OTP = generate_verification_code(user.secret_key)
+        print("Server OTP:", SERVER_OTP)  # For debugging purposes only, remove in production
         if otp == SERVER_OTP:
             status_value = TransactionStatus.CONFIRMED
         else:

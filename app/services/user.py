@@ -29,7 +29,8 @@ def create_user(
         email=email, 
         password=get_password_hash(password), 
         role=role,
-        provider_type=provider_type
+        provider_type=provider_type,
+        secret_key=User.generate_secret_key()  # Generate unique secret key
     )
     db.add(user)
     db.commit()

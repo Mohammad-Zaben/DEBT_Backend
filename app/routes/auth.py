@@ -52,5 +52,5 @@ def create_provider(payload: ProviderCreate, current: User = Depends(get_current
 
 @router.post("/login", response_model=Token)
 def login(payload: UserLogin, db: Session = Depends(get_db)):
-    token = auth_service.login(db, payload.email, payload.password)
-    return {"access_token": token, "token_type": "bearer"}
+    login_response = auth_service.login(db, payload.email, payload.password)
+    return login_response

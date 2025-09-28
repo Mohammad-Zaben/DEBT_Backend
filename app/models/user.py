@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship
 import enum
+import secrets
 from app.core.database import Base
 
 class UserRole(str, enum.Enum):
@@ -22,6 +23,7 @@ class User(Base):
     password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.USER)
     provider_type = Column(Enum(ProviderType), nullable=True)  # Only for providers
+    secret_key = Column(String, nullable=True)  # Unique secret key for each user
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
@@ -34,3 +36,8 @@ class User(Base):
     # Work payment relationships (for PAYER providers)
     employers = relationship("Employer", back_populates="provider", cascade="all, delete-orphan")
     work_payments = relationship("WorkPayment", back_populates="provider", cascade="all, delete-orphan")
+
+    @staticmethod
+    def generate_secret_key() -> str:
+        """Generate a secure random secret key for the user"""
+        return secrets.token_hex(16)
